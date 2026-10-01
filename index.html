@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>跳转管理后台</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:#f4f6fb;color:#1a1f36;-webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;outline:none}
+  input,select{font-family:inherit;outline:none}
+
+  /* ---------- 登录 ---------- */
+  .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{
+    width:100%;max-width:380px;background:#fff;border-radius:20px;padding:36px 32px;
+    box-shadow:0 20px 50px -12px rgba(16,24,40,.18);
+  }
+  .logo{
+    width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:22px;margin-bottom:20px;
+  }
+  .login-card h1{font-size:22px;margin-bottom:6px}
+  .login-card .sub{color:#8a94a6;font-size:13px;margin-bottom:24px}
+  .field{margin-bottom:14px}
+  .field input{
+    width:100%;padding:13px 15px;border:1.5px solid #e3e8ef;border-radius:12px;font-size:14px;
+    background:#fafbfe;transition:.18s;
+  }
+  .field input:focus{border-color:#6366f1;background:#fff;box-shadow:0 0 0 4px rgba(99,102,241,.1)}
+  .btn-primary{
+    width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);transition:.18s;
+  }
+  .btn-primary:hover{opacity:.92;transform:translateY(-1px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .err{color:#e5484d;font-size:13px;margin-top:12px;text-align:center;min-height:18px}
+
+  /* ---------- 主界面 ---------- */
+  .topbar{
+    background:#fff;border-bottom:1px solid #eaeef5;padding:0 24px;height:62px;
+    display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;
+  }
+  .topbar .brand{font-weight:700;font-size:16px;display:flex;align-items:center;gap:10px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.15)}
+  .topbar .spacer{flex:1}
+  .btn-ghost{
+    padding:8px 14px;border-radius:10px;font-size:13px;background:#f1f3f9;color:#4a5468;
+    transition:.15s;font-weight:500;
+  }
+  .btn-ghost:hover{background:#e6e9f2}
+
+  .wrap{max-width:1120px;margin:0 auto;padding:28px 24px 80px}
+  .hero{
+    background:#fff;border-radius:18px;padding:22px 24px;margin-bottom:22px;
+    box-shadow:0 1px 3px rgba(16,24,40,.06);display:flex;flex-wrap:wrap;
+    align-items:center;gap:14px;justify-content:space-between;
+  }
+  .hero h2{font-size:17px;margin-bottom:4px}
+  .hero p{font-size:13px;color:#8a94a6}
+  .hero code{
+    background:#eef2ff;color:#4f46e5;padding:2px 7px;border-radius:6px;
+    font-size:12px;font-family:ui-monospace,Menlo,monospace;
+  }
+
+  .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .toolbar .spacer{flex:1}
+
+  .row{
+    display:grid;grid-template-columns:1.1fr 1.8fr 132px 74px 46px;gap:10px;
+    align-items:center;background:#fff;padding:12px 14px;border-radius:14px;
+    margin-bottom:10px;box-shadow:0 1px 3px rgba(16,24,40,.06);transition:.15s;
+  }
+  .row:hover{box-shadow:0 4px 14px rgba(16,24,40,.09)}
+  .row input[type=text],.row select{
+    width:100%;padding:10px 12px;border:1.5px solid #e3e8ef;border-radius:10px;
+    font-size:13px;background:#fafbfe;transition:.15s;
+  }
+  .row input[type=text]:focus,.row select:focus{border-color:#6366f1;background:#fff}
+  .row input.invalid{border-color:#e5484d;background:#fff5f5}
+
+  .switch{position:relative;display:inline-block;width:40px;height:22px;justify-self:center}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{
+    position:absolute;inset:0;background:#cfd6e4;border-radius:22px;transition:.2s;
+  }
+  .slider:before{
+    content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:#fff;
+    border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .slider{background:#22c55e}
+  .switch input:checked + .slider:before{transform:translateX(18px)}
+
+  .del{
+    width:34px;height:34px;border-radius:10px;background:#fff0f0;color:#e5484d;font-size:16px;
+    display:flex;align-items:center;justify-content:center;transition:.15s;justify-self:end;
+  }
+  .del:hover{background:#e5484d;color:#fff}
+
+  .empty{
+    text-align:center;padding:60px 20px;color:#9aa4b8;font-size:14px;background:#fff;
+    border-radius:16px;border:2px dashed #e3e8ef;
+  }
+
+  .badge{
+    font-size:11px;padding:2px 8px;border-radius:20px;background:#eef2ff;color:#4f46e5;
+    font-weight:600;margin-left:6px;
+  }
+
+  /* toast */
+  #toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);
+    background:#1a1f36;color:#fff;padding:11px 20px;border-radius:12px;font-size:13px;
+    opacity:0;pointer-events:none;transition:.28s;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.25);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media(max-width:820px){
+    .row{grid-template-columns:1fr 1fr;}
+    .row .col-host,.row .col-target{grid-column:span 2}
+    .row .col-act{justify-self:end}
+    .wrap{padding:18px 14px 70px}
+    .topbar{padding:0 14px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== 登录 ========== -->
+<div id="loginView" class="center">
+  <div class="login-card">
+    <div class="logo">↗</div>
+    <h1>跳转管理后台</h1>
+    <p class="sub">登录后可为每个域名配置跳转目标</p>
+    <div class="field">
+      <input type="password" id="password" placeholder="请输入管理密码" autocomplete="current-password">
+    </div>
+    <button class="btn-primary" id="loginBtn">登 录</button>
+    <p class="err" id="loginErr"></p>
+  </div>
+</div>
+
+<!-- ========== 主界面 ========== -->
+<div id="mainView" hidden>
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> 跳转管理</div>
+    <div class="spacer"></div>
+    <button class="btn-ghost" id="logoutBtn">退出登录</button>
+  </div>
+
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h2>域名跳转规则</h2>
+        <p>当前访问域名：<code id="currentHost">—</code> · 修改后记得点击「保存」</p>
+      </div>
+      <button class="btn-ghost" id="addCurrentBtn">+ 把当前域名加进来</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn-ghost" id="addBtn">+ 添加规则</button>
+      <div class="spacer"></div>
+      <button class="btn-primary" id="saveBtn" style="width:auto;padding:10px 26px">保存修改</button>
+    </div>
+
+    <div id="list"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(() => {
+  const API = '/api';
+  const $ = id => document.getElementById(id);
+  let token = localStorage.getItem('rh_token') || '';
+  let items = [];   // [{host, target, status, enabled}]
+  let dirty = false;
+
+  /* ---------- 工具 ---------- */
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => (
+    { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]
+  ));
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  async function api(path, opts = {}) {
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(opts.headers || {}),
+      },
+    });
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+    if (res.status === 401) { doLogout(); throw new Error(data.error || '登录已过期'); }
+    if (!res.ok) throw new Error(data.error || ('请求失败 ' + res.status));
+    return data;
+  }
+
+  /* ---------- 登录 / 登出 ---------- */
+  function doLogout() {
+    token = '';
+    localStorage.removeItem('rh_token');
+    $('mainView').hidden = true;
+    $('loginView').style.display = 'flex';
+  }
+
+  async function login() {
+    const pwd = $('password').value;
+    if (!pwd) return;
+    const btn = $('loginBtn');
+    btn.disabled = true; btn.textContent = '登录中…';
+    $('loginErr').textContent = '';
+    try {
+      const { token: t } = await api('/login', {
+        method: 'POST',
+        body: JSON.stringify({ password: pwd }),
+      });
+      token = t;
+      localStorage.setItem('rh_token', t);
+      $('password').value = '';
+      await enterMain();
+    } catch (e) {
+      $('loginErr').textContent = e.message;
+    } finally {
+      btn.disabled = false; btn.textContent = '登 录';
+    }
+  }
+
+  async function enterMain() {
+    $('loginView').style.display = 'none';
+    $('mainView').hidden = false;
+    $('currentHost').textContent = location.host;
+
+    const { rules } = await api('/rules');
+    items = Object.entries(rules || {}).map(([host, r]) => ({
+      host,
+      target: r.target || '',
+      status: Number(r.status) || 302,
+      enabled: r.enabled !== false,
+    })).sort((a, b) => a.host.localeCompare(b.host));
+
+    dirty = false;
+    render();
+  }
+
+  /* ---------- 渲染 ---------- */
+  function render() {
+    const list = $('list');
+    if (!items.length) {
+      list.innerHTML = '<div class="empty">还没有任何跳转规则<br>点击上方「添加规则」开始配置</div>';
+      return;
+    }
+    list.innerHTML = items.map((it, i) => `
+      <div class="row" data-i="${i}">
+        <input type="text" class="col-host host" placeholder="go.example.com"
+               value="${esc(it.host)}" spellcheck="false">
+        <input type="text" class="col-target target" placeholder="https://目标网站.com"
+               value="${esc(it.target)}" spellcheck="false">
+        <select class="status">
+          ${[[302,'302 临时'],[301,'301 永久'],[307,'307 保留方法'],[308,'308 永久保留']]
+            .map(([v, t]) => `<option value="${v}" ${it.status === v ? 'selected' : ''}>${t}</option>`)
+            .join('')}
+        </select>
+        <label class="switch">
+          <input type="checkbox" class="enabled" ${it.enabled ? 'checked' : ''}>
+          <span class="slider"></span>
+        </label>
+        <button class="del" title="删除">✕</button>
+      </div>
+    `).join('');
+  }
+
+  /* ---------- 列表事件（事件委托，输入时不重渲染以保留焦点） ---------- */
+  const list = $('list');
+
+  list.addEventListener('input', e => {
+    const row = e.target.closest('.row');
+    if (!row) return;
+    const it = items[+row.dataset.i];
+    if (!it) return;
+    if (e.target.classList.contains('host'))   it.host   = e.target.value;
+    if (e.target.classList.contains('target')) it.target = e.target.value;
+    if (e.target.classList.contains('status')) it.status = Number(e.target.value);
+    if (e.target.classList.contains('enabled'))it.enabled = e.target.checked;
+    dirty = true;
+  });
+
+  list.addEventListener('change', e => {
+    if (e.target.classList.contains('status')) {
+      const it = items[+e.target.closest('.row').dataset.i];
+      if (it) it.status = Number(e.target.value);
+      dirty = true;
+    }
+  });
+
+  list.addEventListener('click', e => {
+    if (!e.target.classList.contains('del')) return;
+    const i = +e.target.closest('.row').dataset.i;
+    items.splice(i, 1);
+    dirty = true;
+    render();
+  });
+
+  /* ---------- 操作 ---------- */
+  $('addBtn').addEventListener('click', () => {
+    items.push({ host: '', target: 'https://', status: 302, enabled: true });
+    dirty = true;
+    render();
+    const inputs = list.querySelectorAll('.host');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  $('addCurrentBtn').addEventListener('click', () => {
+    const h = location.host.toLowerCase();
+    if (items.some(it => it.host.trim().toLowerCase() === h)) {
+      return toast('当前域名已经在列表中了');
+    }
+    items.push({ host: h, target: 'https://', status: 302, enabled: true });
+    dirty = true;
+    render();
+    toast('已添加 ' + h);
+  });
+
+  $('saveBtn').addEventListener('click', async () => {
+    const rules = {};
+    let bad = null;
+
+    list.querySelectorAll('.row').forEach(row => {
+      const it = items[+row.dataset.i];
+      const hostInput = row.querySelector('.host');
+      const targetInput = row.querySelector('.target');
+      const h = (it.host || '').trim().toLowerCase();
+      const t = (it.target || '').trim();
+
+      hostInput.classList.remove('invalid');
+      targetInput.classList.remove('invalid');
+
+      if (!h) { hostInput.classList.add('invalid'); bad = bad || '有规则没填域名'; return; }
+      if (!t) { targetInput.classList.add('invalid'); bad = bad || '有规则没填目标地址'; return; }
+      if (!/^https?:\/\//i.test(t)) { targetInput.classList.add('invalid'); bad = bad || '目标地址必须以 http:// 或 https:// 开头'; return; }
+      if (rules[h]) { hostInput.classList.add('invalid'); bad = bad || '域名重复：' + h; return; }
+
+      rules[h] = { target: t, status: Number(it.status) || 302, enabled: it.enabled !== false };
+    });
+
+    if (bad) return toast(bad);
+
+    const btn = $('saveBtn');
+    btn.disabled = true; btn.textContent = '保存中…';
+    try {
+      await api('/rules', { method: 'PUT', body: JSON.stringify({ rules }) });
+      dirty = false;
+      toast('✓ 保存成功，立即生效');
+    } catch (e) {
+      toast('保存失败：' + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = '保存修改';
+    }
+  });
+
+  $('logoutBtn').addEventListener('click', doLogout);
+
+  /* ---------- 初始化 ---------- */
+  $('loginBtn').addEventListener('click', login);
+  $('password').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  window.addEventListener('beforeunload', e => {
+    if (dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // 已登录则尝试直接进入
+  if (token) {
+    enterMain().catch(() => doLogout());
+  }
+})();
+</script>
+</body>
+</html>
